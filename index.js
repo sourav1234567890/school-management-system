@@ -16,7 +16,7 @@ con.on('open',function(){
 const alienRouters=require('./routers/aliens');
 const users=require('./routers/user');
 app.use('/api',alienRouters)
-app.use('/users',users)
+app.use('/api/users',users)
 var port=process.env.PORT;
 console.log({port});
 app.listen(process.env.PORT,function(){

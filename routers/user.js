@@ -5,6 +5,8 @@ router.get('/', (req, res) => {
     res.json({ success: 'ok' });
 })
 router.post('/', async (req, res) => {
+    console.log("dhhfhfh");
+    console.log(req.body);
     if (req.body.name && req.body.phoneno && req.body.username && req.body.password && req.body.email) {
         const userData = {};
         userData.name = ((req.body.name).trim());
@@ -19,7 +21,7 @@ router.post('/', async (req, res) => {
             const userSaved = await userSave.save();
             res.json({ success: 'OK', message: 'successfully registered' });
         } catch (err) {
-
+            console.log({err});
         }
     } else {
         res.json({ success: 'OK', message: 'parameters missmatch', status: 'FAILED' });
