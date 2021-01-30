@@ -1,5 +1,6 @@
 const express=require('express');
 const bodyparser=require('body-parser');
+require('dotenv').config()
 const app=express();
 const mongoose=require('mongoose');
 const mongoConnectionUrl='mongodb+srv://JR-Test:test@test.eviky.mongodb.net/test';
@@ -16,9 +17,11 @@ const alienRouters=require('./routers/aliens');
 const users=require('./routers/user');
 app.use('/api',alienRouters)
 app.use('/api/users',users)
-app.listen(5000,()=>{
-  console.log(`server started `)
-})
+var port=process.env.PORT;
+console.log({port});
+app.listen(process.env.PORT,function(){
+  console.log("server is running on  port"+process.env.PORT);
+});
 
 
 
