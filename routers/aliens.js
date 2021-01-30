@@ -3,10 +3,9 @@ const router=express.Router();
 const Aliens=require('../models/alien');
 
 router.get('/',async(req,res)=>{
-    console.log("calling");
-const alien=await Aliens.find()
-console.log({alien});
-res.json(alien)
+console.log("calling");
+res.json({success:'ok'});
+
 })
 router.post('/',async(req,res)=>{
     console.log("post method is calling");
