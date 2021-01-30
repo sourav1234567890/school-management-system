@@ -1,6 +1,9 @@
 const express=require('express');
 const userModael=require('../models/user');
 const router=express.Router();
+router.get('/',(req,res)=>{
+    res.json({success:'ok'});
+})
 router.post('/', async (req,res)=>{
     if(req.body.name && req.body.phoneno && req.body.username && req.body.password && req.body.email ){
         const userData={};
