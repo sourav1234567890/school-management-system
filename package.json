@@ -17,9 +17,12 @@
   "author": "my chat app",
   "license": "MIT",
   "dependencies": {
+    "@forkjs/group-router": "^1.0.5",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.13",
     "nodemailer": "^6.4.17",
     "nodemon": "^2.0.7"
