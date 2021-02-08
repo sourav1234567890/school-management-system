@@ -10,15 +10,24 @@ const mongooseurl = 'mongodb+srv://JR-Test:test@test.eviky.mongodb.net/souravdev
 //app.use(bodyparser.raw(options));
 app.use(bodyparser.json())
 mongoose.connect(mongooseurl, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
 const con = mongoose.connection;
-
 con.on('open', function () {
   console.log("connected");
 })
 const alienRouters = require('./routers/aliens');
 const users = require('./routers/user');
+app.use(function(req,res,next){
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  next();
+})
 app.use('/api', alienRouters)
-app.use('/api/users', users)
+app.use('/api/users', users);
 // later 
 // approute.group('/api/createtoken', function () {
 //   console.log("free");

@@ -10,6 +10,11 @@ const mongooseSchema=new mongoose.Schema({
         required:true,
         unique:true,
     },
+    invite_code:{
+        type:String,
+        required:true,
+        unique:true,
+    },
     phoneno:{
         type:String,
         required:true,
