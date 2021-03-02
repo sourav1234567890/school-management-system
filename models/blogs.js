@@ -1,4 +1,3 @@
-const { text } = require('express');
 const mongoose=require('mongoose');
 const {Schema} = require('mongoose')
 const mongooseSchema=new Schema({
@@ -17,12 +16,8 @@ const mongooseSchema=new Schema({
     likecount:{
         type:Number,
         required:false,
+        default:0
        
-    },
-    likedby:{
-        type:Array,
-        required:false,
-        default:[]
     },
     created_time:{
         type:Date,
