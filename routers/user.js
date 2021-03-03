@@ -1,5 +1,5 @@
 const express = require('express');
-const path=require('path');
+const path = require('path');
 const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
 const bcrypt = require('bcrypt');
@@ -9,16 +9,16 @@ const ContantFile = require('../config/constant');
 require('dotenv').config()
 
 const router = express.Router();
-const storagenn=multer.diskStorage({
-   
-    destination:(req,file,cb3)=>{
-        cb3(null,'public/uploads')
+const storagenn = multer.diskStorage({
+
+    destination: (req, file, cb3) => {
+        cb3(null, 'public/uploads')
     },
-    filename: (req,file,cb4)=>{
-      cb4(null,Date.now()+ path.extname(file.originalname))  
+    filename: (req, file, cb4) => {
+        cb4(null, Date.now() + path.extname(file.originalname))
     }
 })
-const upload=multer({storage:storagenn})
+const upload = multer({ storage: storagenn })
 router.get('/', async (req, res) => {
     try {
         const allUsers = await userModael.find()
@@ -112,48 +112,72 @@ router.get('/all-users', async (req, res) => {
 
     }
 })
-router.post('/blog-post',upload.single('blogimage'), async (req, res,err) => {
-    if(req.body.name && req.body.description){
-        const blogData={};
+router.post('/blog-post', upload.single('blogimage'), async (req, res, err) => {
+    if (req.body.name && req.body.description) {
+        const blogData = {};
         const token = req.headers.authorization;
         const userDetails = await generateaccessToken.decodeToken(token);
         blogData.userid = userDetails.id
-        blogData.name=req.body.name
-        blogData.description=req.body.description
+        blogData.name = req.body.name
+        blogData.description = req.body.description
         blogData.created_time = new Date();
         blogData.updated_time = new Date();
-        blogData.image=req.file.filename;
-        const blogSave=new blogModel(blogData);
-        try{
-            const blogInsert=blogSave.save();
+        blogData.image = req.file.filename;
+        const blogSave = new blogModel(blogData);
+        try {
+            const blogInsert = blogSave.save();
             res.json({
-                success:'OK',
-                STATUS:1,
-                message:'Blog Is added'
+                success: 'OK',
+                STATUS: 1,
+                message: 'Blog Is added'
             })
-        }catch(err){
+        } catch (err) {
             console.log(err);
         }
 
         console.log(req.file);
-    }else{
+    } else {
         res.json({
-            success:'OK',
-            STATUS:1,
-            message:'Parameters Missmatch'
+            success: 'OK',
+            STATUS: 1,
+            message: 'Parameters Missmatch'
         })
     }
 })
 
 // block delte 
 router.post('/blog-delete', async (req, res) => {
-    const id = req.body.blog_id;
-    try {
-        const allUsers = await blogModel.deleteOne({ _id: "602580c436bd2610ec58d688" });
-        res.send("blog is deleted");
-    } catch (e) {
-        console.log(e);
+    const blogId = req.body.blog_id;
+    console.log({blogId});
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token);
+    console.log({userDetails});
+    try{
+        const blogFetch=await blogModel.find({_id:blogId})
+        console.log(parseInt(userDetails.id));
+        if(parseFloat(blogFetch[0].userid[0])=userDetails.id){
+            res.json({
+                success:'OK',
+                status:1,
+                message:'successfully deleted'
+            })
+        }else{
+            res.json({
+                success:'OK',
+                status:0,
+                message:'not deleted'
+            })
+        }
+    }catch(err){                               
+
     }
+
+    // try {
+    //     const allUsers = await blogModel.deleteOne({ _id: "602580c436bd2610ec58d688" });
+    //     res.send("blog is deleted");
+    // } catch (e) {
+    //     console.log(e);
+    // }
 })
 
 router.post('/blog-update', async (req, res) => {
@@ -166,12 +190,12 @@ router.post('/imageupload', upload.single('userimage'), async (req, res, next) =
 });
 router.post('/blog-list', async (req, res) => {
     await blogModel.find().
-    populate( { path: 'userid', select: ['email','name']}).
-    exec(function (err, blogsdata) {
-        if (err) return handleError(err);
-        res.send(blogsdata);
-        console.log('Here is the populated user blogs: ', blogsdata[0].id);
-    });
+        populate({ path: 'userid', select: ['email', 'name'] }).
+        exec(function (err, blogsdata) {
+            if (err) return handleError(err);
+            res.send(blogsdata);
+            console.log('Here is the populated user blogs: ', blogsdata[0].id);
+        });
 })
 
 module.exports = router;  
