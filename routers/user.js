@@ -158,46 +158,41 @@ router.post('/blog-delete', async (req, res) => {
         console.log(blogFetch.length);
         if (blogFetch.length>0) {
             if (blogFetch[0].userid[0] == userDetails.id) {
-                try {
-                    fs.existsSync(`./public/uploads/${blogFetch[0].image}`, async function (err) {
-                        fs.unlink(`./public/uploads/${blogFetch[0].image}`, async function (err) {
-                            if (err) {
-                                res.json({
-                                    success: 'OK',
-                                    message: 'Please wait network issue..'
-                                })
-                            } else {
-                                const blogDelete = await blogModel.deleteOne({ _id: blogId })
-                                console.log({ blogDelete });
-                            }
-                        });
-                    })
                     try {
                         const blogDelete = await blogModel.deleteOne({ _id: blogId })
                         console.log({ blogDelete });
+                        if (blogDelete.ok == 1) {
+                            fs.unlink(`./public/uploads/${blogFetch[0].image}`, async function (err) {
+                                if (err) {
+                                    res.json({
+                                        success: 'OK',
+                                        message: 'Please wait network issue..'
+                                    })
+                                } else {
+                                    res.json({
+                                        success: 'OK',
+                                        status: 0,
+                                        message: ' deleted'
+                                    })
+                                }
+                            });
+                           
+                        } else {
+                            res.json({
+                                success: 'OK',
+                                status: 0,
+                                message: ' already deleted'
+                            })
+                        }
                     } catch (err) {
                         res.json({
                             err: err
                         })
                     }
 
-                    if (blogDelete.ok == 1) {
-                        res.json({
-                            success: 'OK',
-                            status: 0,
-                            message: ' deleted'
-                        })
-                    } else {
-                        res.json({
-                            success: 'OK',
-                            status: 0,
-                            message: ' already deleted'
-                        })
-                    }
+                
 
-                } catch (err) {
-                    console.log(err);
-                }
+               
 
             } else {
                 res.json({
@@ -232,7 +227,26 @@ router.post('/blog-delete', async (req, res) => {
 })
 
 router.post('/blog-update', async (req, res) => {
-    console.log("blog updating");
+    const blogId = req.body.blog_id;
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token); 
+    if(userDetails){
+        const blogDetails=await blogModel.find({_id:blogId})
+        if(blogDetailsStriing.length>0){
+          
+        }else{
+            res.json({
+                success:'OK',
+                status:404,
+                message:'Blohg Not Found'
+            })
+        }
+    }else{
+    res.json({
+        success:'OK',
+        message:'You Are Not Authenticate'
+    })
+    }
 });
 
 
@@ -244,9 +258,51 @@ router.post('/blog-list', async (req, res) => {
         populate({ path: 'userid', select: ['email', 'name'] }).
         exec(function (err, blogsdata) {
             if (err) return handleError(err);
-            res.send(blogsdata);
-            console.log('Here is the populated user blogs: ', blogsdata[0].id);
+            if(blogsdata.length>0){
+                res.json({
+                    success:'OK',
+                    status:200,
+                    blogs:blogsdata,
+                })
+            }else{
+                res.json({
+                    success:'OK',
+                    status:404,
+                    blogs:[],
+                })
+            }
         });
 })
+router.post('/blog-details',async (req,res)=>{
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token);
+    if(userDetails){
+        const blogId=req.body.blog_id;
+        const blogDetails=await blogModel.find({_id:blogId}).
+        populate({path:'userid',select:['email','name']}).exec(function(err,blogsVal){
+            if(blogsVal.length>0){
+                res.json({
+                    success:'OK',
+                    status:404,
+                    message:'Blog Found',
+                    blogs:blogsVal,
+                })
+            }else{
+                res.json({
+                    success:'OK',
+                    status:404,
+                    message:'Blog Not Found',
+                    blogs:[],
+                })
+               
+            }
+        });
+    }else{
+        res.json({
+            success:'OK',
+            status:401,
+        })
+    }
+});
 
 module.exports = router;  
