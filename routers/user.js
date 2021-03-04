@@ -4,7 +4,7 @@ const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
 const bcrypt = require('bcrypt');
 const multer = require('multer');
-const fs=require('fs');
+const fs = require('fs');
 const generateaccessToken = require('../lib/generateAccessToken');
 const ContantFile = require('../config/constant');
 require('dotenv').config()
@@ -149,35 +149,78 @@ router.post('/blog-post', upload.single('blogimage'), async (req, res, err) => {
 // block delte 
 router.post('/blog-delete', async (req, res) => {
     const blogId = req.body.blog_id;
-    console.log({blogId});
+    console.log({ blogId });
     const token = req.headers.authorization;
     const userDetails = await generateaccessToken.decodeToken(token);
-    console.log({userDetails});
-    try{
-        const blogFetch=await blogModel.find({_id:blogId})
-        if(blogFetch[0].userid[0]==userDetails.id){
-            try {
-                fs.unlink('./public/uploads/1614709392855.jpg',function(err){
-                    console.log({err});
-                });
-            }catch(err){
-                console.log(err);
+    console.log({ userDetails });
+    try {
+        const blogFetch = await blogModel.find({ _id: blogId })
+        console.log(blogFetch.length);
+        if (blogFetch.length>0) {
+            if (blogFetch[0].userid[0] == userDetails.id) {
+                try {
+                    fs.existsSync(`./public/uploads/${blogFetch[0].image}`, async function (err) {
+                        fs.unlink(`./public/uploads/${blogFetch[0].image}`, async function (err) {
+                            if (err) {
+                                res.json({
+                                    success: 'OK',
+                                    message: 'Please wait network issue..'
+                                })
+                            } else {
+                                const blogDelete = await blogModel.deleteOne({ _id: blogId })
+                                console.log({ blogDelete });
+                            }
+                        });
+                    })
+                    try {
+                        const blogDelete = await blogModel.deleteOne({ _id: blogId })
+                        console.log({ blogDelete });
+                    } catch (err) {
+                        res.json({
+                            err: err
+                        })
+                    }
+
+                    if (blogDelete.ok == 1) {
+                        res.json({
+                            success: 'OK',
+                            status: 0,
+                            message: ' deleted'
+                        })
+                    } else {
+                        res.json({
+                            success: 'OK',
+                            status: 0,
+                            message: ' already deleted'
+                        })
+                    }
+
+                } catch (err) {
+                    console.log(err);
+                }
+
+            } else {
+                res.json({
+                    success: 'OK',
+                    status: 0,
+                    message: "You don't have permitted for delete this blog"
+                })
             }
-            //const deleteBlog=await blogModel.deleteOne({_id:blogId})
-            res.json({
-                success:'OK',
-                status:1,
-                message:'successfully deleted'
-            })
         }else{
+            console.log("hhg");
             res.json({
                 success:'OK',
                 status:0,
-                message:'not deleted'
+                message:'Blog Not Found.'
             })
         }
-    }catch(err){                               
 
+    } catch (err) {
+        res.json({
+            success:'FAILED',
+            status:0
+        })
+        console.log({err});
     }
 
     // try {
