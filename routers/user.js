@@ -4,6 +4,7 @@ const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
 const bcrypt = require('bcrypt');
 const multer = require('multer');
+const fs=require('fs');
 const generateaccessToken = require('../lib/generateAccessToken');
 const ContantFile = require('../config/constant');
 require('dotenv').config()
@@ -154,8 +155,15 @@ router.post('/blog-delete', async (req, res) => {
     console.log({userDetails});
     try{
         const blogFetch=await blogModel.find({_id:blogId})
-        console.log(parseInt(userDetails.id));
-        if(parseFloat(blogFetch[0].userid[0])=userDetails.id){
+        if(blogFetch[0].userid[0]==userDetails.id){
+            try {
+                fs.unlink('./public/uploads/1614709392855.jpg',function(err){
+                    console.log({err});
+                });
+            }catch(err){
+                console.log(err);
+            }
+            //const deleteBlog=await blogModel.deleteOne({_id:blogId})
             res.json({
                 success:'OK',
                 status:1,
