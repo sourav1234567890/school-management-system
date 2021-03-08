@@ -20,6 +20,16 @@ const storagenn = multer.diskStorage({
     }
 })
 const upload = multer({ storage: storagenn })
+const storageedit=multer.diskStorage({
+    destination:(req,file,cb)=>{
+        cb(null,'public/uploads')
+    },
+    filename:(req,file,cb)=>{
+        cb(null,Date.now() + path.extname(file.originalname))
+    }
+
+})
+const uploads=multer({storage:storageedit});
 router.get('/', async (req, res) => {
     try {
         const allUsers = await userModael.find()
@@ -114,6 +124,7 @@ router.get('/all-users', async (req, res) => {
     }
 })
 router.post('/blog-post', upload.single('blogimage'), async (req, res, err) => {
+    console.log(req.body);
     if (req.body.name && req.body.description) {
         const blogData = {};
         const token = req.headers.authorization;
@@ -226,14 +237,20 @@ router.post('/blog-delete', async (req, res) => {
     // }
 })
 
-router.post('/blog-update', async (req, res) => {
+router.post('/blog-update',async function (req, res)  {
+    console.log(req.body)
     const blogId = req.body.blog_id;
+    console.log({blogId});
     const token = req.headers.authorization;
     const userDetails = await generateaccessToken.decodeToken(token); 
     if(userDetails){
         const blogDetails=await blogModel.find({_id:blogId})
-        if(blogDetailsStriing.length>0){
-          
+        if(blogDetails.length>0){
+            console.log("bloglentgh");
+           const uploads= await upload.single('blogeditimage')
+           console.log(req.file);
+           console.log({uploads});
+          // upload.single('blogeditimage')()
         }else{
             res.json({
                 success:'OK',
