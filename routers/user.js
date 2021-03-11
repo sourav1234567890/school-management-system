@@ -1,12 +1,18 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');
+const { ObjectId } = require('mongoose');
 const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
+const blogLikeModel = require('../models/bloglike')
+const blogCommentModel = require('../models/blogcomment')
+const blogCommentLikeModel = require('../models/blogcommentlike')
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const fs = require('fs');
 const generateaccessToken = require('../lib/generateAccessToken');
 const ContantFile = require('../config/constant');
+const { Console } = require('console');
 require('dotenv').config()
 
 const router = express.Router();
@@ -20,16 +26,16 @@ const storagenn = multer.diskStorage({
     }
 })
 const upload = multer({ storage: storagenn })
-const storageedit=multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,'public/uploads')
+const storageedit = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads')
     },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now() + path.extname(file.originalname))
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname))
     }
 
 })
-const uploads=multer({storage:storageedit});
+const uploads = multer({ storage: storageedit });
 router.get('/', async (req, res) => {
     try {
         const allUsers = await userModael.find()
@@ -167,43 +173,43 @@ router.post('/blog-delete', async (req, res) => {
     try {
         const blogFetch = await blogModel.find({ _id: blogId })
         console.log(blogFetch.length);
-        if (blogFetch.length>0) {
+        if (blogFetch.length > 0) {
             if (blogFetch[0].userid[0] == userDetails.id) {
-                    try {
-                        const blogDelete = await blogModel.deleteOne({ _id: blogId })
-                        console.log({ blogDelete });
-                        if (blogDelete.ok == 1) {
-                            fs.unlink(`./public/uploads/${blogFetch[0].image}`, async function (err) {
-                                if (err) {
-                                    res.json({
-                                        success: 'OK',
-                                        message: 'Please wait network issue..'
-                                    })
-                                } else {
-                                    res.json({
-                                        success: 'OK',
-                                        status: 0,
-                                        message: ' deleted'
-                                    })
-                                }
-                            });
-                           
-                        } else {
-                            res.json({
-                                success: 'OK',
-                                status: 0,
-                                message: ' already deleted'
-                            })
-                        }
-                    } catch (err) {
+                try {
+                    const blogDelete = await blogModel.deleteOne({ _id: blogId })
+                    console.log({ blogDelete });
+                    if (blogDelete.ok == 1) {
+                        fs.unlink(`./public/uploads/${blogFetch[0].image}`, async function (err) {
+                            if (err) {
+                                res.json({
+                                    success: 'OK',
+                                    message: 'Please wait network issue..'
+                                })
+                            } else {
+                                res.json({
+                                    success: 'OK',
+                                    status: 0,
+                                    message: ' deleted'
+                                })
+                            }
+                        });
+
+                    } else {
                         res.json({
-                            err: err
+                            success: 'OK',
+                            status: 0,
+                            message: ' already deleted'
                         })
                     }
+                } catch (err) {
+                    res.json({
+                        err: err
+                    })
+                }
 
-                
 
-               
+
+
 
             } else {
                 res.json({
@@ -212,21 +218,21 @@ router.post('/blog-delete', async (req, res) => {
                     message: "You don't have permitted for delete this blog"
                 })
             }
-        }else{
+        } else {
             console.log("hhg");
             res.json({
-                success:'OK',
-                status:0,
-                message:'Blog Not Found.'
+                success: 'OK',
+                status: 0,
+                message: 'Blog Not Found.'
             })
         }
 
     } catch (err) {
         res.json({
-            success:'FAILED',
-            status:0
+            success: 'FAILED',
+            status: 0
         })
-        console.log({err});
+        console.log({ err });
     }
 
     // try {
@@ -237,34 +243,126 @@ router.post('/blog-delete', async (req, res) => {
     // }
 })
 
-router.post('/blog-update',async function (req, res)  {
+router.post('/blog-update', async function (req, res) {
     console.log(req.body)
     const blogId = req.body.blog_id;
-    console.log({blogId});
+    console.log({ blogId });
     const token = req.headers.authorization;
-    const userDetails = await generateaccessToken.decodeToken(token); 
-    if(userDetails){
-        const blogDetails=await blogModel.find({_id:blogId})
-        if(blogDetails.length>0){
+    const userDetails = await generateaccessToken.decodeToken(token);
+    if (userDetails) {
+        const blogDetails = await blogModel.find({ _id: blogId })
+        if (blogDetails.length > 0) {
             console.log("bloglentgh");
-           const uploads= await upload.single('blogeditimage')
-           console.log(req.file);
-           console.log({uploads});
-          // upload.single('blogeditimage')()
-        }else{
+            const uploads = await upload.single('blogeditimage')
+            console.log(req.file);
+            console.log({ uploads });
+            // upload.single('blogeditimage')()
+        } else {
             res.json({
-                success:'OK',
-                status:404,
-                message:'Blohg Not Found'
+                success: 'OK',
+                status: 404,
+                message: 'Blohg Not Found'
             })
         }
-    }else{
-    res.json({
-        success:'OK',
-        message:'You Are Not Authenticate'
-    })
+    } else {
+        res.json({
+            success: 'OK',
+            message: 'You Are Not Authenticate'
+        })
     }
 });
+
+router.post('/blog-like', async (req, res) => {
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token);
+    const blogid = req.body.blog_id;
+    const bloglike = await blogLikeModel.find({ likeby: userDetails.id, blogid: blogid })
+    if (bloglike.length > 0) {
+        const blogDelete = await blogLikeModel.deleteOne({ likeby: userDetails.id, blogid: blogid })
+        res.json({
+            success: 'OK',
+            message: 'dislike'
+        })
+    } else {
+        const blogLikes = {};
+        blogLikes.likeby = userDetails.id;
+        blogLikes.blogid = blogid;
+        blogLikes.created_time = new Date();
+        blogLikes.updated_time = new Date();
+        const blogLikeSave = new blogLikeModel(blogLikes);
+        try {
+            const blogLikeInsert = blogLikeSave.save();
+            res.json({
+                success: 'OK',
+                message: 'Like'
+            })
+        } catch (err) {
+
+        }
+
+    }
+});
+router.post('/blog-comment', async (req, res) => {
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token);
+    const blogid = req.body.blog_id;
+    const blogComment = await blogModel.find({ _id: blogid })
+    if (blogComment.length > 0) {
+        const blogComments = {};
+        blogComments.userid = userDetails.id;
+        blogComments.blogid = blogid;
+        blogComments.comment = req.body.comment;
+        blogComments.created_time = new Date();
+        blogComments.updated_time = new Date();
+        const blogCommentSave = new blogCommentModel(blogComments)
+        try {
+            const insertComment = await blogCommentSave.save();
+            res.json({
+                success: 'OK',
+                message: 'Blog Commentg is added.'
+            })
+        }
+        catch (err) {
+        }
+    }
+    else {
+        res.json({
+            success: 'OK',
+            message: 'Blog Not Found'
+        })
+    }
+
+})
+router.post('/blog-comment-like', async (req, res, next) => {
+    const token = req.headers.authorization;
+    const userDetails = await generateaccessToken.decodeToken(token);
+    const blogid = req.body.blog_id;
+    const blogComment = await blogModel.find({ _id: blogid })
+    if (blogComment.length > 0) {
+        const blogComments = {};
+        blogComments.userid = userDetails.id;
+        blogComments.blogid = blogid;
+        blogComments.commentid = req.body.commentid;
+        blogComments.created_time = new Date();
+        blogComments.updated_time = new Date();
+        const blogCommentLikeSave = new blogCommentLikeModel(blogComments)
+        try {
+            const insertComment = await blogCommentLikeSave.save();
+            res.json({
+                success: 'OK',
+                message: 'Blog Commentg like is added.'
+            })
+        }
+        catch (err) {
+        }
+    }
+    else {
+        res.json({
+            success: 'OK',
+            message: 'Blog Not Found'
+        })
+    }
+})
 
 
 router.post('/imageupload', upload.single('userimage'), async (req, res, next) => {
@@ -275,51 +373,51 @@ router.post('/blog-list', async (req, res) => {
         populate({ path: 'userid', select: ['email', 'name'] }).
         exec(function (err, blogsdata) {
             if (err) return handleError(err);
-            if(blogsdata.length>0){
+            if (blogsdata.length > 0) {
                 res.json({
-                    success:'OK',
-                    status:200,
-                    blogs:blogsdata,
+                    success: 'OK',
+                    status: 200,
+                    blogs: blogsdata,
                 })
-            }else{
+            } else {
                 res.json({
-                    success:'OK',
-                    status:404,
-                    blogs:[],
+                    success: 'OK',
+                    status: 404,
+                    blogs: [],
                 })
             }
         });
 })
-router.post('/blog-details',async (req,res)=>{
+router.post('/blog-details', async (req, res) => {
     const token = req.headers.authorization;
     const userDetails = await generateaccessToken.decodeToken(token);
-    if(userDetails){
-        const blogId=req.body.blog_id;
-        const blogDetails=await blogModel.find({_id:blogId}).
-        populate({path:'userid',select:['email','name']}).exec(function(err,blogsVal){
-            if(blogsVal.length>0){
-                res.json({
-                    success:'OK',
-                    status:404,
-                    message:'Blog Found',
-                    blogs:blogsVal,
-                })
-            }else{
-                res.json({
-                    success:'OK',
-                    status:404,
-                    message:'Blog Not Found',
-                    blogs:[],
-                })
-               
-            }
-        });
-    }else{
+    if (userDetails) {
+        const blogId = req.body.blog_id;
+        const blogDetails = await blogModel.find({ _id: blogId }).
+            populate({ path: 'userid', select: ['email', 'name'] }).exec(function (err, blogsVal) {
+                if (blogsVal.length > 0) {
+                    res.json({
+                        success: 'OK',
+                        status: 404,
+                        message: 'Blog Found',
+                        blogs: blogsVal,
+                    })
+                } else {
+                    res.json({
+                        success: 'OK',
+                        status: 404,
+                        message: 'Blog Not Found',
+                        blogs: [],
+                    })
+
+                }
+            });
+    } else {
         res.json({
-            success:'OK',
-            status:401,
+            success: 'OK',
+            status: 401,
         })
     }
 });
 
-module.exports = router;  
+module.exports = router;
