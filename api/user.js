@@ -14,8 +14,10 @@ const generateaccessToken = require('../lib/generateAccessToken');
 const ContantFile = require('../config/constant');
 const { Console } = require('console');
 require('dotenv').config()
+
 const router = express.Router();
 const storagenn = multer.diskStorage({
+
     destination: (req, file, cb3) => {
         cb3(null, 'public/uploads')
     },
@@ -126,7 +128,7 @@ router.get('/all-users', async (req, res) => {
     } catch (err) {
 
     }
-});
+})
 router.post('/blog-post', upload.single('blogimage'), async (req, res, err) => {
     console.log(req.body);
     if (req.body.name && req.body.description) {
@@ -160,6 +162,8 @@ router.post('/blog-post', upload.single('blogimage'), async (req, res, err) => {
         })
     }
 })
+
+// block delte 
 router.post('/blog-delete', async (req, res) => {
     const blogId = req.body.blog_id;
     console.log({ blogId });
@@ -238,6 +242,7 @@ router.post('/blog-delete', async (req, res) => {
     //     console.log(e);
     // }
 })
+
 router.post('/blog-update', async function (req, res) {
     console.log(req.body)
     const blogId = req.body.blog_id;
@@ -266,6 +271,7 @@ router.post('/blog-update', async function (req, res) {
         })
     }
 });
+
 router.post('/blog-like', async (req, res) => {
     const token = req.headers.authorization;
     const userDetails = await generateaccessToken.decodeToken(token);
@@ -357,7 +363,10 @@ router.post('/blog-comment-like', async (req, res, next) => {
         })
     }
 })
+
+
 router.post('/imageupload', upload.single('userimage'), async (req, res, next) => {
+
 });
 router.post('/blog-list', async (req, res) => {
     const blogs=[];
