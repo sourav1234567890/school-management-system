@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const moment=require('moment');
 const { ObjectId } = require('mongoose');
 const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
@@ -368,12 +369,14 @@ router.post('/blog-list', async (req, res) => {
             if (blogsdata.length > 0) {
                 blogsdata.map((item,key)=>{
                     const firstLetter=item.userid[0].name.charAt(0).toUpperCase()
+                    const blogCreatedDate=moment(item.created_time).format("MMMM Do YY"); 
                     blogs.push({
                         id:item._id,
                         name:item.name,
                         firstletter:firstLetter,
                         description:item.description,
-                        image:'http://localhost:4000/uploads/'+item.image
+                        image:'http://localhost:4000/uploads/'+item.image,
+                        blogcreateddate:blogCreatedDate
                     })
                 })
                 res.json({
@@ -397,12 +400,19 @@ router.post('/blog-details', async (req, res) => {
         const blogId = req.body.blog_id;
         const blogDetails = await blogModel.find({ _id: blogId }).
             populate({ path: 'userid', select: ['email', 'name'] }).exec(function (err, blogsVal) {
+                console.log(blogsVal.name);
                 if (blogsVal.length > 0) {
+                    const blogDetails={};
+                    blogDetails.blogname=blogsVal[0].name
+                    blogDetails.blogimage=`http://localhost:4000/uploads/${blogsVal[0].image}`
+                    blogDetails.blogdescription=blogsVal[0].description
+                    blogDetails.blogcreateddate=moment(blogsVal[0].created_time).format("MMMM Do YY"); 
+                    console.log({blogDetails});
                     res.json({
                         success: 'OK',
-                        status: 404,
+                        status: 200,
                         message: 'Blog Found',
-                        blogs: blogsVal,
+                        blogs: blogDetails,
                     })
                 } else {
                     res.json({

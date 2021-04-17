@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const moment=require('moment');
 const { ObjectId } = require('mongoose');
 const userModael = require('../models/user');
 const blogModel = require('../models/blogs')
@@ -375,7 +376,9 @@ router.post('/blog-list', async (req, res) => {
         exec(function (err, blogsdata) {
             if (err) return handleError(err);
             if (blogsdata.length > 0) {
+               
                 blogsdata.map((item,key)=>{
+                    console.log({item});
                     const firstLetter=item.userid[0].name.charAt(0).toUpperCase()
                     blogs.push({
                         id:item._id,
