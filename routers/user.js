@@ -407,6 +407,8 @@ router.post('/blog-details', async (req, res) => {
                     blogDetails.blogimage=`http://localhost:4000/uploads/${blogsVal[0].image}`
                     blogDetails.blogdescription=blogsVal[0].description
                     blogDetails.blogcreateddate=moment(blogsVal[0].created_time).format("MMMM Do YY"); 
+                    const firstLetter=blogsVal[0].name.charAt(0).toUpperCase()
+                    blogDetails.firstletter=firstLetter
                     console.log({blogDetails});
                     res.json({
                         success: 'OK',
