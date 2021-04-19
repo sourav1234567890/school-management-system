@@ -40,7 +40,6 @@ router.get('/', async (req, res) => {
         const allUsers = await userModael.find()
         res.json({ users: allUsers });
     } catch (err) {
-
     }
 })
 // api for user registration
@@ -268,9 +267,17 @@ router.post('/blog-update', async function (req, res) {
     }
 });
 router.post('/blog-like', async (req, res) => {
+    if(!req.body.blog_id){
+        res.json({
+            success: 'OK',
+            message: 'Parameters Missmatch',
+            status:'FAILED'
+        })
+    }
     const token = req.headers.authorization;
     const userDetails = await generateaccessToken.decodeToken(token);
     const blogid = req.body.blog_id;
+    console.log({blogid});
     const bloglike = await blogLikeModel.find({ likeby: userDetails.id, blogid: blogid })
     if (bloglike.length > 0) {
         const blogDelete = await blogLikeModel.deleteOne({ likeby: userDetails.id, blogid: blogid })
@@ -279,6 +286,7 @@ router.post('/blog-like', async (req, res) => {
             message: 'dislike'
         })
     } else {
+        console.log("blog like already");
         const blogLikes = {};
         blogLikes.likeby = userDetails.id;
         blogLikes.blogid = blogid;
@@ -399,9 +407,14 @@ router.post('/blog-details', async (req, res) => {
     if (userDetails) {
         const blogId = req.body.blog_id;
         const blogDetails = await blogModel.find({ _id: blogId }).
-            populate({ path: 'userid', select: ['email', 'name'] }).exec(function (err, blogsVal) {
+            populate({ path: 'userid', select: ['email', 'name'] }).exec( async function (err, blogsVal) {
                 console.log(blogsVal.name);
                 if (blogsVal.length > 0) {
+                    var blogLikeStatus=false;
+                    const bloglike = await blogLikeModel.find({ likeby: userDetails.id, blogid: blogId })
+                    if(bloglike.length>0){
+                        var blogLikeStatus=true;
+                    }
                     const blogDetails={};
                     blogDetails.blogname=blogsVal[0].name
                     blogDetails.blogimage=`http://localhost:4000/uploads/${blogsVal[0].image}`
@@ -409,6 +422,7 @@ router.post('/blog-details', async (req, res) => {
                     blogDetails.blogcreateddate=moment(blogsVal[0].created_time).format("MMMM Do YY"); 
                     const firstLetter=blogsVal[0].name.charAt(0).toUpperCase()
                     blogDetails.firstletter=firstLetter
+                    blogDetails.blogstatus=blogLikeStatus
                     console.log({blogDetails});
                     res.json({
                         success: 'OK',
