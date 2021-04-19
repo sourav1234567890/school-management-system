@@ -413,7 +413,7 @@ router.post('/blog-details', async (req, res) => {
                     var blogLikeStatus=false;
                     const bloglike = await blogLikeModel.find({ likeby: userDetails.id, blogid: blogId })
                     if(bloglike.length>0){
-                        var blogLikeStatus=true;
+                        var blogLikeStatus=true; //
                     }
                     const blogDetails={};
                     blogDetails.blogname=blogsVal[0].name
